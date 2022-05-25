@@ -6,6 +6,8 @@ https://github.com/shy-robin/vue-reactive-demo
 
 https://github.com/canfoo/self-vue
 
+https://juejin.cn/post/6868257054676090887
+
 https://github.com/woai3c/mini-vue
 
 https://ustbhuangyi.github.io/vue-analysis/
