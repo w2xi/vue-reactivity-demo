@@ -5,94 +5,35 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
-  <script src="https://cdn.bootcdn.net/ajax/libs/underscore.js/1.13.3/underscore-min.js"></script>
-  <script>
-    _.templateSettings.interpolate = /\{\{(.+?)\}\}/g
-  </script>
+  <script src="./reactive.js"></script>
 </head>
 <body>
   <div id="app">
-    <div>{{ name }}</div>
+    <div v-on:click="handleClick">{{ message }}</div>
     <div>{{ age }}</div>
+    <div>{{ profile.name }}</div>
+    <input v-model="message" />
   </div>
   <script>
-    const data = {
-      name: 'w2xi',
-      age: 26,
-    };
-
-    const sharedPropertyDefinition = {
-      enumerable: true,
-      configurable: true,
-      get: noop,
-      set: noop,
-    }
-
-    let tplRender;
-
-    const vm = new MyVue({
+    const vm = new Vue({
       el: '#app',
-      data: data,
-    })
-    
-    function MyVue(options) {
-      options = options || {}
-      let el = options.el;
-      const data = options.data || {};
-
-      this.data = data;
-
-      if (typeof el === 'string') {
-        el = document.querySelector(el);
-        template = el.innerHTML;
-      } else if (el.nodeType === 1) {
-        template = el.innerHTML;
-      } else {
-        el = document.createElement('div');
-        document.body.appendChild(el);
-        template = el.innerHTML
-      }
-      
-      tplRender = () => render(el, _.template(template));
-      tplRender();
-
-      Object.keys(data).forEach(key => {
-        defineReactive(data, key);
-        proxy(this, 'data', key);
-      });
-    }
-
-    function defineReactive(obj, key) {
-      let val = obj[key];
-
-      Object.defineProperty(obj, key, {
-        enumerable: true,
-        configurable: true,
-        get() {
-          return val;
+      data: {
+        message: 'Vue.js',
+        profile: {
+          name: 'asdf',
+          age: 12,
+          detail: {
+            address: 'ChangSha China',
+          }
         },
-        set(newVal) {
-          console.log('new value:', newVal);
-          val = newVal;
-          tplRender();
-        },
-      })
-    }
-
-    function noop() {}
-    function proxy(target, sourceKey, key) {
-      sharedPropertyDefinition.get = function proxyGetter() {
-        return target[sourceKey][key];
-      }
-      sharedPropertyDefinition.set = function proxySetter(val) {
-        target[sourceKey][key] = val;
-      }
-      Object.defineProperty(target, key, sharedPropertyDefinition);
-    }
-
-    function render(element, fn) {
-      element.innerHTML = fn(data);
-    }
+        age: 12,
+      },
+      methods: {
+        handleClick() {
+          alert(this.message);
+        }
+      },
+    });
   </script>
 </body>
 </html>

@@ -3,28 +3,29 @@ class Vue {
     this.$options = options.data;
     this.$data = options.data;
     this.$el = options.el;
+    this.$methods = options.methods;
     // 数据劫持
     new Observer(this.$data);
     // 代理 vm.xxx 到 vm.$data.xxx
-    proxy(this, this.$data);
+    this.proxy(this, this.$data);
+    // 模板编译
     new Compile(this, this.$el);
   }
-}
 
-function proxy(vm, data) {
-  for (let key in data) {
-    if (Reflect.has(data, key)) {
-      Object.defineProperty(vm, key, {
-        configurable: true,
-        enumerable: true,
-        get() {
-          return vm.$data[key];
-        },
-        set(value) {
-          console.log(1);
-          vm.$data[key] = value;
-        },
-      });
+  proxy(vm, data) {
+    for (let key in data) {
+      if (Reflect.has(data, key)) {
+        Object.defineProperty(vm, key, {
+          configurable: true,
+          enumerable: true,
+          get() {
+            return vm.$data[key];
+          },
+          set(value) {
+            vm.$data[key] = value;
+          },
+        });
+      }
     }
   }
 }
@@ -32,38 +33,42 @@ function proxy(vm, data) {
 class Observer {
   constructor(data) {
     this.data = data;
-    this.observe(data);
+
+    if (!Array.isArray(data)) {
+      this.walk(data);
+    }
   }
 
-  observe(data) {
+  walk(data) {
     for (let key in data) {
       if (Reflect.has(data, key)) {
-        this.defineReactive(data, key, data[key]);
+        defineReactive(data, key, data[key]);
       }
     }
   }
+}
 
-  defineReactive(data, key, value) {
-    if (value && typeof value === 'object') {
-      // 递归遍历子属性
-      this.observe(value);
-    }
-    const dep = new Dep();
-    Object.defineProperty(data, key, {
-      configurable: true,
-      enumerable: true,
-      get() {
-        dep.depend();
-        return value;
-      },
-      set(newValue) {
-        if (value !== newValue) {
-          value = newValue;
-          dep.notify();
-        }
-      }
-    });
+function defineReactive(data, key, value) {
+  if (value && typeof value === "object") {
+    // 递归遍历子属性
+    new Observer(value);
   }
+  const dep = new Dep();
+  Object.defineProperty(data, key, {
+    configurable: true,
+    enumerable: true,
+    get() {
+      dep.depend();
+      return value;
+    },
+    set(newValue) {
+      console.log(key);
+      if (value !== newValue) {
+        value = newValue;
+        dep.notify();
+      }
+    },
+  });
 }
 
 // 订阅器
@@ -83,7 +88,7 @@ class Dep {
   }
 
   notify() {
-    this.subs.forEach(sub => {
+    this.subs.forEach((sub) => {
       sub.update();
     });
   }
@@ -91,11 +96,21 @@ class Dep {
 
 // 订阅者
 class Watcher {
-  construtor(vm, exp, cb) {
+  constructor(vm, exp, cb) {
     this.vm = vm;
     this.exp = exp;
+    // 执行 this.getter() 就可以读取 data.a.b.c 的内容
+    this.getter = parsePath(exp);
     this.cb = cb;
     this.value = this.get();
+  }
+
+  get() {
+    Dep.target = this;
+    // const value = this.vm.$data[this.exp]; // 触发数据劫持的 getter
+    const value = this.getter.call(this.vm, this.vm);
+    Dep.target = undefined;
+    return value;
   }
 
   update() {
@@ -107,15 +122,6 @@ class Watcher {
       this.cb.call(this.vm, value, oldValue);
     }
   }
-
-  get() {
-    Dep.target = this;
-    const value = this.vm.$data[this.exp]; // 触发数据劫持的 getter
-    Dep.target = undefined;
-    return value;
-  }
-
-  update() { }
 }
 
 class Compile {
@@ -131,13 +137,13 @@ class Compile {
     // https://developer.mozilla.org/zh-CN/docs/Web/API/Document/createDocumentFragment
     this.fragment = this.nodeToFragment(this.el);
     this.compileElement(this.fragment);
-    console.log(this.fragment)
     this.el.appendChild(this.fragment);
   }
 
   nodeToFragment(el) {
     const fragment = document.createDocumentFragment();
     let child = el.firstChild;
+
     while (child) {
       // 将Dom元素移入fragment中
       fragment.appendChild(child);
@@ -148,6 +154,7 @@ class Compile {
 
   compileElement(el) {
     const childNodes = el.childNodes;
+
     [].slice.call(childNodes).forEach((node) => {
       const reg = /\{\{(.*)\}\}/;
       const text = node.textContent;
@@ -163,13 +170,79 @@ class Compile {
     });
   }
 
-  compile(node) {}
+  compile(node) {
+    const nodeAttrs = node.attributes;
+
+    Array.prototype.forEach.call(nodeAttrs, (attr) => {
+      const attrName = attr.name;
+      
+      if (this.isDirective(attrName)) {
+        const exp = attr.value;
+        const dir = attrName.slice(2);
+
+        if (this.isEventDirective(dir)) {
+          // 事件指令
+          this.compileEvent(node, this.vm, exp, dir);
+        } else {
+          // v-model 指令
+          this.compileModel(node, this.vm, exp, dir);
+        }
+        node.removeAttribute(attrName);
+      }
+    });
+  }
 
   compileText(node, exp) {
-    node.textContent = this.vm[exp] || '';
+    const getter = parsePath(exp);
+    const value = getter.call(this.vm, this.vm);
+    
+    node.textContent = value || '';
+
     new Watcher(this.vm, exp, (newValue) => {
       node.textContent = newValue;
-    })
+    });
+  }
+
+  compileEvent(node, vm, exp, dir) {
+    // dir: on:click
+    const eventType = dir.split(":")[1];
+    const cb = vm.$methods && vm.$methods[exp];
+
+    if (eventType && cb) {
+      // 绑定事件
+      node.addEventListener(eventType, cb.bind(vm), false);
+    }
+  }
+
+  compileModel(node, vm, exp, dir) {
+    let val = this.vm[exp];
+    this.modelUpdater(node, val);
+
+    new Watcher(this.vm, exp, (value) => {
+      this.modelUpdater(node, value);
+    });
+
+    node.addEventListener("input", (e) => {
+      const newValue = e.target.value;
+
+      if (val === newValue) {
+        return;
+      }
+      this.vm[exp] = newValue;
+      val = newValue;
+    });
+  }
+
+  modelUpdater(node, value, oldValue) {
+    node.value = typeof value == 'undefined' ? '' : value;
+  }
+
+  isDirective(attr) {
+    return attr.startsWith("v-");
+  }
+
+  isEventDirective(dir) {
+    return dir.startsWith('on:');
   }
 
   isElementNode(node) {
@@ -182,10 +255,27 @@ class Compile {
 }
 
 function query(el) {
-  if (typeof el === 'string') {
+  if (typeof el === "string") {
     return document.querySelector(el);
-  } else if (el.nodeType === 3) { // dom node
+  } else if (el.nodeType === 3) {
+    // dom node
     return el;
   }
-  throw new Error('[el]: Dom元素不存在');
+  throw new Error("[el]: Dom元素不存在");
+}
+
+// 简单路径解析
+// a.b.c => data[a][b][c]
+function parsePath(path) {
+  if (/[^\w.$]/.test(path)) {
+    return;
+  }
+  const segment = path.split('.')
+  return (obj) => {
+    for (let i = 0; i < segment.length; i++) {
+      if (!obj) return;
+      obj = obj[segment[i]];
+    }
+    return obj;
+  }
 }
