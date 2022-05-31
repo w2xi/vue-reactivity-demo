@@ -9,10 +9,15 @@
 </head>
 <body>
   <div id="app">
-    <div v-on:click="handleClick">{{ message }}</div>
-    <div>{{ age }}</div>
-    <div>{{ profile.name }}</div>
-    <input v-model="message" />
+    <button v-on:click="handleClick">Click!</button>
+    <div>age: {{ profile.age }}</div>
+    <div>name: {{ profile.name }}</div>
+    <div>address: {{ profile.detail.address }}</div>
+    <div>
+      {{ message }}
+      <br />
+      <input v-model="message" />
+    </div>
   </div>
   <script>
     const vm = new Vue({
@@ -20,13 +25,12 @@
       data: {
         message: 'Vue.js',
         profile: {
-          name: 'asdf',
-          age: 12,
+          name: 'w2xi',
+          age: 26,
           detail: {
-            address: 'ChangSha China',
+            address: 'ChangSha.China',
           }
         },
-        age: 12,
       },
       methods: {
         handleClick() {

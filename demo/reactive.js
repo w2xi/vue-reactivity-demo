@@ -127,6 +127,7 @@ class Compile {
     this.vm = vm;
     this.el = query(el);
     this.fragment = null;
+    this.interpolate = /\{\{\s*(.+?)\s*\}\}/;
     this.init();
   }
 
@@ -154,13 +155,13 @@ class Compile {
     const childNodes = el.childNodes;
 
     [].slice.call(childNodes).forEach((node) => {
-      const reg = /\{\{(.*)\}\}/;
+      const reg = this.interpolate;
       const text = node.textContent;
 
       if (this.isElementNode(node)) {
         this.compile(node);
       } else if (this.isTextNode(node) && reg.test(text)) {
-        this.compileText(node, reg.exec(text)[1].trim());
+        this.compileText(node, reg.exec(text)[1]);
       }
       if (node.childNodes && node.childNodes.length) {
         this.compileElement(node);
@@ -193,11 +194,12 @@ class Compile {
   compileText(node, exp) {
     const getter = parsePath(exp);
     const value = getter.call(this.vm, this.vm);
-    
-    node.textContent = value || '';
+    const text = node.textContent;
+
+    node.textContent = text.replace(this.interpolate, value);
 
     new Watcher(this.vm, exp, (newValue) => {
-      node.textContent = newValue;
+      node.textContent = text.replace(this.interpolate, newValue);
     });
   }
 
