@@ -62,7 +62,6 @@ function defineReactive(data, key, value) {
       return value;
     },
     set(newValue) {
-      console.log(key);
       if (value !== newValue) {
         value = newValue;
         dep.notify();
@@ -71,7 +70,7 @@ function defineReactive(data, key, value) {
   });
 }
 
-// 订阅器
+// 订阅器 收集依赖
 class Dep {
   constructor() {
     this.subs = [];
@@ -99,7 +98,7 @@ class Watcher {
   constructor(vm, exp, cb) {
     this.vm = vm;
     this.exp = exp;
-    // 执行 this.getter() 就可以读取 data.a.b.c 的内容
+    // 执行 this.getter() 就可以读取 vm.a.b.c 的内容
     this.getter = parsePath(exp);
     this.cb = cb;
     this.value = this.get();
@@ -107,14 +106,13 @@ class Watcher {
 
   get() {
     Dep.target = this;
-    // const value = this.vm.$data[this.exp]; // 触发数据劫持的 getter
-    const value = this.getter.call(this.vm, this.vm);
+    const value = this.getter.call(this.vm, this.vm); // 触发 getter
     Dep.target = undefined;
     return value;
   }
 
   update() {
-    const value = this.vm.$data[this.exp];
+    const value = this.getter.call(this.vm, this.vm);
     const oldValue = this.value;
 
     if (value !== oldValue) {
