@@ -1,0 +1,33 @@
+{
+  "name": "vue-reactivity-demo",
+  "version": "1.0.0",
+  "description": "https://github.com/vuejs/vue",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack --config webpack.config.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/w2xi/vue-reactivity-demo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/w2xi/vue-reactivity-demo/issues"
+  },
+  "homepage": "https://github.com/w2xi/vue-reactivity-demo#readme",
+  "devDependencies": {
+    "@babel/core": "^7.18.2",
+    "@babel/plugin-transform-runtime": "^7.18.2",
+    "@babel/preset-env": "^7.18.2",
+    "babel-loader": "^8.2.5",
+    "html-webpack-plugin": "^4.5.2"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.18.3",
+    "@babel/runtime-corejs3": "^7.18.3",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10"
+  }
+}
