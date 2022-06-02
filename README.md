@@ -2,6 +2,8 @@
 
 ## 参考
 
+https://github.com/vuejs/vue
+
 https://github.com/shy-robin/vue-reactive-demo
 
 https://github.com/canfoo/self-vue
