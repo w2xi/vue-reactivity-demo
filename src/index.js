@@ -1,6 +1,5 @@
 import Observer from './observer.js';
 import Compile from './compile.js';
-
 class Vue {
   constructor(options) {
     this.$options = options.data;
@@ -13,7 +12,7 @@ class Vue {
     this.proxy(this, this.$data);
     
     // 模板编译
-    new Compile(this, this.$el);
+    this.$el && new Compile(this, this.$el);
   }
 
   proxy(vm, data) {
@@ -32,4 +31,11 @@ class Vue {
       }
     }
   }
+
+  $mount(el) {
+    this.$el = el;
+    new Compile(this, this.$el);
+  }
 }
+
+export default Vue;

@@ -1,5 +1,5 @@
+import Dep from './dep.js';
 import { parsePath } from './utils';
-
 class Watcher {
   constructor(vm, exp, cb) {
     this.vm = vm;
