@@ -1,27 +1,53 @@
-//首先引入插件
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require('path')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
-  mode: 'development',
+  mode: 'production',
+  // 入口文件 main.js
+  entry: {
+    main: './src/main.js'
+  },
+  // 输出
+  output: {
+    // 输出到 dist文件夹
+    path: path.resolve(__dirname, './dist'),
+    // js文件下
+    filename: 'js/chunk-[contenthash].js',
+    // 每次打包前自动清除旧的dist
+    clean: true,
+  },
+  devtool: 'eval-cheap-module-source-map',
+  resolve: {
+    // 路径别名
+    alias: {
+      '@': path.resolve('./src')
+    },
+    // 引入文件时可以省略后缀
+    extensions: ['.js', '.vue', '.json'],
+  },
+  devServer: {
+    // 自定义端口号
+    // port:7000,
+    // 自动打开浏览器
+    open: true
+  },
   module: {
     rules: [
       {
-        test: /\.jsx?$/,
-        use: ['babel-loader'],
-        exclude: /node_modules/ //排除 node_modules 目录
-      }
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: ['babel-loader']
+      },
     ]
   },
   plugins: [
-    //数组 放着所有的webpack插件
     new HtmlWebpackPlugin({
+      // 模板文件
       template: './public/index.html',
-      filename: 'index.html', //打包后的文件名
-      minify: {
-        removeAttributeQuotes: false, //是否删除属性的双引号
-        collapseWhitespace: false, //是否折叠空白
-      },
-      // hash: true //是否加上hash，默认是 false
-    })
+      // 打包后的文件名
+      filename: 'index.html',
+      // js文件插入 body里
+      inject: 'body',
+    }),
   ]
 }
