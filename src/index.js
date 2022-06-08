@@ -1,5 +1,7 @@
 import Observer from './observer.js';
 import Compile from './compile.js';
+import Watcher from './watcher.js';
+
 class Vue {
   constructor(options) {
     this.$options = options.data;
@@ -32,9 +34,25 @@ class Vue {
     }
   }
 
+  $watch(expOrFn, cb, options) {
+    const vm = this;
+    options = options || {};
+    const watcher = new Watcher(vm, expOrFn, cb, options);
+    
+    if (options.immediate) { // 立即执行一次回调
+      cb.call(vm, watcher.value);
+    }
+    // 返回 unwatchFn 用于取消观察数据
+    return function unwatchFn() {
+      // 在依赖列表中移除该watcher实例
+      watcher.teardown();
+    }
+  }
+
   $mount(el) {
     this.$el = el;
     new Compile(this, this.$el);
+    return this;
   }
 }
 

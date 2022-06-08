@@ -1,6 +1,8 @@
 import Dep from './dep.js';
 import { isObject, def } from './utils';
 
+const hasOwnProperty = Object.prototype.hasOwnProperty;
+
 // 劫持重写数组的原型方法，而为了污染污染 Array.prototype，可以对需要观测的数组进行特殊处理
 // 通过 Object.create(Array.prototype) 创建一个中间对象(委托自 Array.prototype)，
 // 在这个中间对象上重写 push、pop、shift、unshift、splice、sort、reverse 等方法，
@@ -54,6 +56,7 @@ class Observer {
     def(data, '__ob__', this);
 
     if (Array.isArray(data)) {
+      // 对数组类型，将其原型指向数组拦截器
       data.__proto__ = arrayMethods;
       this.observeArray(data);
     } else {
