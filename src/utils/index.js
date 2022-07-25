@@ -36,3 +36,5 @@ export function def(obj, key, value, enumerable) {
     configurable: true
   });
 }
+
+export function noop() {}
