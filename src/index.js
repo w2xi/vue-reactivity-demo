@@ -1,4 +1,4 @@
-import Observer, { set } from './observer.js';
+import Observer, { set, del } from './observer.js';
 import Compile from './compile.js';
 import Watcher from './watcher.js';
 
@@ -55,14 +55,11 @@ class Vue {
     return set(obj, key, val);
   }
 
+  $delete() {}
+
   // 删除属性
   $delete(obj, key) {
-    if (Array.isArray(obj)) {
-      obj.splice(key, 1);
-    } else {
-      delete obj[key];
-      obj[key].__ob__.dep.notify();
-    }
+    del(obj, key);
   }
 
   // EventEmitter 
@@ -120,5 +117,6 @@ class Vue {
 }
 
 Vue.set = set;
+Vue.delete = del;
 
 export default Vue;

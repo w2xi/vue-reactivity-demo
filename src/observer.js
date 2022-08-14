@@ -1,5 +1,5 @@
 import Dep from './dep.js';
-import { isObject, def } from './utils';
+import { isObject, def, hasOwn } from './utils';
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
@@ -129,6 +129,26 @@ export function set(target, key, val) {
   ob.dep.notify();
 
   return val;
+}
+
+export function del(target, key) {
+  const ob = target.__ob__;
+
+  if (Array.isArray(target)) {
+    target.splice(key, 1);
+    return;
+  }
+  if (!hasOwn(target, key)) {
+    return;
+  }
+  
+  delete target[key];
+  
+  if (!ob) {
+    return;
+  }
+
+  ob.dep.notify();
 }
 
 export default Observer;

@@ -37,4 +37,8 @@ export function def(obj, key, value, enumerable) {
   });
 }
 
+export function hasOwn(obj, key) {
+  return Object.prototype.hasOwnProperty.call(obj, key);
+}
+
 export function noop() {}
