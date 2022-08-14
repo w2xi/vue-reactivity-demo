@@ -4,7 +4,7 @@ const vm = new Vue({
   data: {
     message: 'Hello Vue!',
     obj: {
-      name: 'asdf',
+      name: 'w2xi',
       age: 12,
     }
   }
@@ -17,9 +17,9 @@ const vm = new Vue({
 // // 取消观察数据
 // unwatch();
 
-vm.$watch('obj', (newVal, oldVal) => {
-  console.log('[new value]', newVal);
-  console.log('[old value]', oldVal);
-}, { deep: true, immediate: false });
+// vm.$watch('obj', (newVal, oldVal) => {
+//   console.log('[new value]', newVal);
+//   console.log('[old value]', oldVal);
+// }, { deep: true, immediate: false });
 
 window.vm = vm;

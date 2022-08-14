@@ -49,25 +49,25 @@ methodsToPatch.forEach(method => {
 })
 
 class Observer {
-  constructor(data) {
-    this.data = data;
+  constructor(value) {
+    this.value = value;
     this.dep = new Dep();
     // 给每个属性都加上 __ob__ 属性，用来标识他们是响应式的
-    def(data, '__ob__', this);
+    def(value, '__ob__', this);
 
-    if (Array.isArray(data)) {
+    if (Array.isArray(value)) {
       // 对数组类型，将其原型指向数组拦截器
-      data.__proto__ = arrayMethods;
-      this.observeArray(data);
+      value.__proto__ = arrayMethods;
+      this.observeArray(value);
     } else {
-      this.walk(data);
+      this.walk(value);
     }
   }
 
-  walk(data) {
-    for (let key in data) {
-      if (hasOwnProperty.call(data, key)) {
-        defineReactive(data, key, data[key]);
+  walk(obj) {
+    for (let key in obj) {
+      if (hasOwnProperty.call(obj, key)) {
+        defineReactive(obj, key, obj[key]);
       }
     }
   }
@@ -80,32 +80,33 @@ class Observer {
   }
 }
 
-export function observe(data) {
-  if (!isObject(data)) {
+export function observe(value) {
+  if (!isObject(value)) {
     return;
   }
   
   let ob;
-  if (hasOwnProperty.call(data, '__ob__') && data.__ob__ instanceof Observer) {
-    ob = data.__ob__;
+  if (hasOwnProperty.call(value, '__ob__') && value.__ob__ instanceof Observer) {
+    ob = value.__ob__;
   } else {
-    ob = new Observer(data);
+    ob = new Observer(value);
   }
   return ob;
 }
 
-export function defineReactive(data, key, value) {
+export function defineReactive(obj, key, value) {
   let childOb = observe(value);
   const dep = new Dep();
 
-  Object.defineProperty(data, key, {
+  Object.defineProperty(obj, key, {
     configurable: true,
     enumerable: true,
     get() {
-      dep.depend();
-      // 收集 Array 的依赖
-      if (childOb) {
-        childOb.dep.depend();
+      if (Dep.target) {
+        dep.depend();
+        if (childOb) {
+          childOb.dep.depend();
+        }
       }
       return value;
     },
@@ -116,6 +117,18 @@ export function defineReactive(data, key, value) {
       }
     },
   });
+}
+
+export function set(target, key, val) {
+  const ob = target.__ob__;
+
+  if (!ob) {
+    target[key] = val;
+  }
+  defineReactive(ob.value, key, val);
+  ob.dep.notify();
+
+  return val;
 }
 
 export default Observer;

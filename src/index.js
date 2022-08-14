@@ -1,4 +1,4 @@
-import Observer from './observer.js';
+import Observer, { set } from './observer.js';
 import Compile from './compile.js';
 import Watcher from './watcher.js';
 
@@ -49,11 +49,17 @@ class Vue {
     }
   }
 
+  $set(target, key, val) {
+    return set(target, key, val);
+  }
+
   $mount(el) {
     this.$el = el;
     new Compile(this, this.$el);
     return this;
   }
 }
+
+Vue.set = set;
 
 export default Vue;
